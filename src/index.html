@@ -1,0 +1,221 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../assets/output.css" rel="stylesheet">
+</head>
+
+<body class="bg-black text-white">
+  <script src="../assets/jquery-3.6.3.min.js"></script>
+
+  <div class="flex">
+    <div class="text-center flex-1 text-[5vw]">
+      <span>Clock time:</span><span id="date"></span>
+    </div>
+    <div id="total" class="flex-1 text-center text-[5vw]"></div>
+  </div>
+  <div class="flex">
+    <div class="text-center flex-1 text-[5vw]">
+      <span id="gap"></span>
+    </div>
+    <div id="total2" class="flex-1 text-center text-[5vw]"></div>
+  </div>
+  <div id="title" class="text-center font-bold text-[5vw] pt-[30px] mt-10">title</div>
+  <div id="timer" class='text-[30vw] timer flex justify-center items-center' data-seconds-left="180"></div>
+
+  <div class="flex">
+    <button id="start" class="text-center flex-1 text-2xl bg-[#02a63e] p-5 m-3 rounded-lg">Start</button>
+    <button id="reset" class="text-center flex-1 text-2xl bg-gray-800 p-5 m-3 rounded-lg">Reset</button>
+  </div>
+
+  <div class="flex">
+    <div id="back" class="text-center text-2xl flex-1 p-5 m-3 rounded-lg bg-gray-500 text-black">Back</div>
+    <div id="next" class="text-center text-2xl flex-1 p-5 m-3 rounded-lg bg-gray-500 text-black">Next</div>
+  </div>
+
+  <script>
+
+
+    $(document).ready(function () {
+      var isStart = true;
+      var currentId = 0;
+      var time;
+      var interval;
+      var min;
+      var sec;
+      var schedule = [
+        {
+          "order": "1",
+          "title": "結婚​は​神​に​とっ​て​大切​な​約束",
+          "min": "4",
+          "sec": "0"
+        },
+        {
+          "order": "2",
+          "title": "新婚​生活​の​心構え",
+          "min": "12",
+          "sec": "0"
+        },
+        {
+          "order": "3",
+          "title": "良い​コミュニケーション",
+          "min": "10",
+          "sec": "0"
+        },
+        {
+          "order": "4",
+          "title": "聖書​の​教え​を​実践​し​て​夫婦​の​絆​を​強める",
+          "min": "4",
+          "sec": "0"
+        }
+      ];
+
+      function buttonSwitch(){
+        if(isStart){
+          interval = setInterval(startTimer,1000);
+          $('#start').text('Stop');
+          $('#start').css('background-color','#fc3d03');
+          isStart = false;
+        }else{
+          clearInterval(interval);
+          $('#start').text('Start');
+          $('#start').css('background-color','#02a63e');
+          isStart = true;
+        }
+      }
+
+      var count = -1;
+      var total = 0;
+      var total2 = 0;
+      var totalBak = 0;
+      var gap = 0;
+      for (var single in schedule) {
+        count++;
+        var min = parseInt(schedule[single].min);
+        var sec = parseInt(schedule[single].sec);
+        total += sec + (min * 60);
+      }
+      console.log('count: '+count);
+      totalBak = total;
+
+      
+
+      $('#date').toDate({
+        format: 'H:i'
+      });
+
+      loadSetting();
+
+      function loadSetting(){
+        var min = parseInt(schedule[currentId].min);
+        var sec = parseInt(schedule[currentId].sec);
+        time = sec = sec + (min * 60);
+        $('#title').text(schedule[currentId].title);
+      }
+
+      calc();
+
+      $('#start').on("click",function(){
+        buttonSwitch();
+      });
+
+      $('#reset').on("click",function() {
+        clearInterval(interval);
+        resetTimer();
+      });
+
+      $('#back').on("click",function(){
+        if(currentId != 0){
+            currentId--;
+            calc();
+            loadSetting();
+          }else{
+            this.css('background-color','#666');
+          }
+      });
+
+      $('#next').on("click",function(){
+        if(currentId != count){
+            gap += time;
+            currentId++;
+            calc();
+            loadSetting();
+            min2 = Math.floor( gap / 60 );
+            sec2 = gap % 60;
+            min2 = ('00' + min2).slice(-2);
+            sec2 = ('00' + sec2).slice(-2);
+            
+            if(gap > 0){
+              $('#gap').css('color','green');
+              $('#gap').html('+'+ min2 + ":" + sec2);
+            }else{
+              $('#gap').css('color','red');
+              $('#gap').html(min2 + ":" + sec2);
+            }
+            $('#gap').show();
+          }else{
+            this.css('background-color','#666');
+          }
+      });
+
+
+      function startTimer() {
+        time --;
+        total --;
+        total2 ++;
+        if (time === 0 ) {
+          if(currentId != count){
+            calc();
+            console.log('count: '+count+' currentId: '+currentId);
+            currentId++;
+            loadSetting();
+          }else{
+            // clearInterval(interval);
+            $('#timer').text('End');
+            $('#total').html('Total: 00:00');
+          }
+        } else {
+          calc();
+        }
+      }
+
+
+      function resetTimer() {
+        currentId = 0;
+        total = totalBak;
+        gap = 0;
+        loadSetting();
+        calc();
+        $('#gap').hide();
+      }
+
+
+      function calc() {
+        min = Math.floor( time / 60 );
+        sec = time % 60;
+        min = ('00' + min).slice(-2);
+        sec = ('00' + sec).slice(-2);
+        $('#timer').html(min + ":" + sec);
+
+        min2 = Math.floor( total / 60 );
+        sec2 = total % 60;
+        min2 = ('00' + min2).slice(-2);
+        sec2 = ('00' + sec2).slice(-2);
+        $('#total').html('Total: '+ min2 + ":" + sec2);
+
+        min3 = Math.floor( total2 / 60 );
+        sec3 = total2 % 60;
+        min3 = ('00' + min3).slice(-2);
+        sec3 = ('00' + sec3).slice(-2);
+        $('#total2').html(min3 + ":" + sec3);
+      }
+    });
+
+
+  </script>
+  <script type="text/javascript" src="../assets/jquery.todate.js"></script>
+</body>
+
+</html>
